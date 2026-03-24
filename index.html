@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keepa Price Lookup</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #171b26;
+    --surface2: #1e2433;
+    --border: #2a3045;
+    --accent: #ff6b2b;
+    --accent2: #ff9a5c;
+    --text: #e8eaf0;
+    --text-dim: #6b7591;
+    --text-mid: #a0a9c0;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --yellow: #f1c40f;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    letter-spacing: -1px;
+  }
+
+  .logo-text {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span {
+    color: var(--accent);
+  }
+
+  .settings-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-mid);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .settings-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Settings panel */
+  .settings-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 28px;
+    display: none;
+    animation: slideDown 0.2s ease;
+  }
+
+  .settings-panel.open { display: block; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .settings-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    min-width: 100px;
+  }
+
+  .api-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .api-input:focus { border-color: var(--accent); }
+
+  .save-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+
+  .save-btn:hover { opacity: 0.85; }
+
+  .api-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .api-status.saved { background: rgba(46,204,113,0.15); color: var(--green); }
+  .api-status.unsaved { background: rgba(231,76,60,0.15); color: var(--red); }
+
+  /* Main layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* Input panel */
+  .input-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    position: sticky;
+    top: 24px;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+  }
+
+  .tab-group {
+    display: flex;
+    gap: 4px;
+  }
+
+  .tab {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .tab-content { display: none; padding: 20px; }
+  .tab-content.active { display: block; }
+
+  .asin-textarea {
+    width: 100%;
+    height: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.8;
+  }
+
+  .asin-textarea:focus { border-color: var(--accent); }
+  .asin-textarea::placeholder { color: var(--text-dim); }
+
+  .input-hint {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  /* File upload zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.dragging {
+    border-color: var(--accent);
+    background: rgba(255,107,43,0.05);
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .drop-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .drop-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .drop-text strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .file-chosen {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    display: none;
+  }
+
+  /* Action area */
+  .action-area {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .run-btn {
+    flex: 1;
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .run-btn:hover:not(:disabled) {
+    background: var(--accent2);
+    transform: translateY(-1px);
+  }
+
+  .run-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .asin-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* Results panel */
+  .results-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 400px;
+  }
+
+  .results-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .results-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .result-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255,107,43,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(255,107,43,0.3);
+  }
+
+  .export-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-mid);
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .export-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .export-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(42,48,69,0.5);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .td-asin { color: var(--text-mid); font-size: 12px; }
+  .td-title { color: var(--text); font-size: 12px; max-width: 260px; }
+  .td-title span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .price-cell {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--green);
+  }
+
+  .price-none { color: var(--text-dim); font-size: 11px; font-weight: 400; }
+
+  .status-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-ok { background: var(--green); }
+  .dot-error { background: var(--red); }
+  .dot-loading { background: var(--yellow); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Empty / loading states */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .empty-icon {
+    font-size: 40px;
+    opacity: 0.3;
+  }
+
+  .empty-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .progress-bar-wrap.visible { display: block; }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.3s;
+    max-width: 320px;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* Spinner */
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">K↗</div>
+      <div class="logo-text">Keepa <span>Price Lookup</span></div>
+    </div>
+    <button class="settings-btn" onclick="toggleSettings()">
+      ⚙ Settings
+    </button>
+  </header>
+
+  <!-- Settings Panel -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-row">
+      <span class="settings-label">API Key</span>
+      <input type="password" class="api-input" id="apiKeyInput" placeholder="Paste your Keepa API key…" />
+      <span class="api-status unsaved" id="apiStatus">Not saved</span>
+      <button class="save-btn" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Input Panel -->
+    <div class="input-panel">
+      <div class="panel-header">
+        <span class="panel-title">Input ASINs</span>
+        <div class="tab-group">
+          <button class="tab active" onclick="switchTab('paste', this)">Paste</button>
+          <button class="tab" onclick="switchTab('upload', this)">Upload CSV</button>
+        </div>
+      </div>
+
+      <!-- Paste tab -->
+      <div class="tab-content active" id="tab-paste">
+        <textarea class="asin-textarea" id="asinTextarea"
+          placeholder="B08BG7N16C&#10;B01N5IB20Q&#10;B07XJ8C8F5&#10;..."
+          oninput="updateCount()"></textarea>
+        <div class="input-hint">One ASIN per line</div>
+      </div>
+
+      <!-- Upload tab -->
+      <div class="tab-content" id="tab-upload">
+        <div class="drop-zone" id="dropZone">
+          <input type="file" accept=".csv,.txt" id="fileInput" onchange="handleFile(this)" />
+          <div class="drop-icon">📄</div>
+          <div class="drop-text">
+            <strong>Click to browse</strong> or drag &amp; drop<br>
+            CSV or TXT with one ASIN per row<br>(or an ASIN column)
+          </div>
+          <div class="file-chosen" id="fileChosen"></div>
+        </div>
+      </div>
+
+      <div class="action-area">
+        <button class="run-btn" id="runBtn" onclick="runLookup()">
+          <div class="spinner" id="spinner"></div>
+          <span id="runBtnText">▶ Run Lookup</span>
+        </button>
+        <span class="asin-count" id="asinCount">0 ASINs</span>
+      </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="results-panel">
+      <div class="results-header">
+        <div class="results-meta">
+          <span class="panel-title">Results</span>
+          <span class="result-badge" id="resultBadge" style="display:none">0 / 0</span>
+        </div>
+        <button class="export-btn" id="exportBtn" onclick="exportCSV()" disabled>
+          ↓ Export CSV
+        </button>
+      </div>
+
+      <div id="tableContainer">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">📦</div>
+          <div class="empty-text">Enter some ASINs and hit Run Lookup<br>to fetch buy box &amp; list prices from Keepa.</div>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrap" id="progressWrap">
+        <div class="progress-info">
+          <span id="progressText">Fetching…</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ─── State ───────────────────────────────────────────────
+  let results = [];
+  let uploadedAsins = [];
+  let activeTab = 'paste';
+
+  // ─── Settings ────────────────────────────────────────────
+  function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+      const saved = localStorage.getItem('keepaApiKey') || '';
+      document.getElementById('apiKeyInput').value = saved;
+      updateApiStatus();
+    }
+  }
+
+  function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { showToast('Please enter an API key', 'error'); return; }
+    localStorage.setItem('keepaApiKey', key);
+    updateApiStatus();
+    showToast('API key saved!', 'success');
+  }
+
+  function updateApiStatus() {
+    const key = localStorage.getItem('keepaApiKey');
+    const el = document.getElementById('apiStatus');
+    if (key) {
+      el.textContent = '✓ Saved';
+      el.className = 'api-status saved';
+    } else {
+      el.textContent = 'Not saved';
+      el.className = 'api-status unsaved';
+    }
+  }
+
+  function getApiKey() { return localStorage.getItem('keepaApiKey') || ''; }
+
+  // ─── Tabs ─────────────────────────────────────────────────
+  function switchTab(tab, btn) {
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    updateCount();
+  }
+
+  // ─── ASIN parsing ─────────────────────────────────────────
+  function getAsins() {
+    if (activeTab === 'paste') {
+      return document.getElementById('asinTextarea').value
+        .split('\n')
+        .map(l => l.trim().toUpperCase())
+        .filter(l => /^[A-Z0-9]{10}$/.test(l));
+    } else {
+      return uploadedAsins;
+    }
+  }
+
+  function updateCount() {
+    const asins = getAsins();
+    document.getElementById('asinCount').textContent = `${asins.length} ASIN${asins.length !== 1 ? 's' : ''}`;
+  }
+
+  // ─── File upload ──────────────────────────────────────────
+  function handleFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      // Try to find ASINs: look in each cell of each row
+      const asins = [];
+      const lines = text.split('\n');
+      for (const line of lines) {
+        const cells = line.split(',');
+        for (const cell of cells) {
+          const val = cell.trim().replace(/"/g, '').toUpperCase();
+          if (/^[A-Z0-9]{10}$/.test(val)) {
+            if (!asins.includes(val)) asins.push(val);
+          }
+        }
+      }
+      uploadedAsins = asins;
+      document.getElementById('fileChosen').style.display = 'block';
+      document.getElementById('fileChosen').textContent = `✓ ${file.name} — ${asins.length} ASINs found`;
+      updateCount();
+    };
+    reader.readAsText(file);
+  }
+
+  // Drag & drop
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragging'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragging');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      document.getElementById('fileInput').files = e.dataTransfer.files;
+      handleFile(document.getElementById('fileInput'));
+    }
+  });
+
+  // ─── Keepa API call ───────────────────────────────────────
+  async function fetchKeepaData(asins, apiKey) {
+    // Keepa allows up to 100 ASINs per call
+    const BATCH = 100;
+    const batches = [];
+    for (let i = 0; i < asins.length; i += BATCH) {
+      batches.push(asins.slice(i, i + BATCH));
+    }
+
+    const allProducts = [];
+    for (const batch of batches) {
+      const url = `https://api.keepa.com/product?key=${apiKey}&domain=1&asin=${batch.join(',')}&stats=1&offers=0`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Keepa API error: ${resp.status} ${resp.statusText}`);
+      const data = await resp.json();
+      if (data.products) allProducts.push(...data.products);
+    }
+    return allProducts;
+  }
+
+  function parsePriceData(product) {
+    const stats = product.stats || {};
+    const csv = product.csv || [];
+
+    // Buy box price: stats.current[18] (buy box price series)
+    // Keepa prices are in cents, divide by 100. -1 = not available
+    let buyBox = null;
+    const currentStats = stats.current;
+    if (currentStats && currentStats[18] !== undefined && currentStats[18] > 0) {
+      buyBox = currentStats[18] / 100;
+    }
+    // Fallback: try stats.buyBoxPrice
+    if (!buyBox && stats.buyBoxPrice && stats.buyBoxPrice > 0) {
+      buyBox = stats.buyBoxPrice / 100;
+    }
+
+    // List price: stats.current[10] (list price index)
+    let listPrice = null;
+    if (currentStats && currentStats[10] !== undefined && currentStats[10] > 0) {
+      listPrice = currentStats[10] / 100;
+    }
+
+    return { buyBox, listPrice };
+  }
+
+  // ─── Main lookup ──────────────────────────────────────────
+  async function runLookup() {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      showToast('Please save your Keepa API key in Settings first', 'error');
+      document.getElementById('settingsPanel').classList.add('open');
+      return;
+    }
+
+    const asins = getAsins();
+    if (asins.length === 0) {
+      showToast('No valid ASINs found', 'error');
+      return;
+    }
+
+    // Setup UI
+    setLoading(true);
+    results = asins.map(asin => ({ asin, status: 'loading', title: '', buyBox: null, listPrice: null, error: null }));
+    renderTable(results);
+    showProgress(true, 0, asins.length);
+
+    try {
+      const products = await fetchKeepaData(asins, apiKey);
+
+      // Map results by ASIN
+      const productMap = {};
+      for (const p of products) {
+        productMap[p.asin] = p;
+      }
+
+      results = asins.map(asin => {
+        const p = productMap[asin];
+        if (!p) return { asin, status: 'error', title: '', buyBox: null, listPrice: null, error: 'Not found' };
+        const { buyBox, listPrice } = parsePriceData(p);
+        return {
+          asin,
+          status: 'ok',
+          title: p.title || '',
+          buyBox,
+          listPrice,
+          error: null
+        };
+      });
+
+      renderTable(results);
+      showProgress(true, asins.length, asins.length);
+      document.getElementById('exportBtn').disabled = false;
+      document.getElementById('resultBadge').style.display = '';
+      document.getElementById('resultBadge').textContent = `${results.filter(r => r.status === 'ok').length} / ${results.length}`;
+      showToast(`Done! ${results.length} ASINs processed.`, 'success');
+
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error');
+      results = results.map(r => ({ ...r, status: 'error', error: err.message }));
+      renderTable(results);
+    } finally {
+      setLoading(false);
+      setTimeout(() => showProgress(false), 2000);
+    }
+  }
+
+  // ─── Render table ─────────────────────────────────────────
+  function renderTable(rows) {
+    const container = document.getElementById('tableContainer');
+
+    if (!rows || rows.length === 0) {
+      container.innerHTML = `<div class="empty-state" id="emptyState">
+        <div class="empty-icon">📦</div>
+        <div class="empty-text">Enter some ASINs and hit Run Lookup<br>to fetch buy box &amp; list prices from Keepa.</div>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ASIN</th>
+              <th>Title</th>
+              <th>Buy Box</th>
+              <th>List Price</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td class="td-asin">${r.asin}</td>
+                <td class="td-title"><span title="${escHtml(r.title)}">${r.title ? escHtml(r.title) : '<span class="price-none">—</span>'}</span></td>
+                <td>${r.status === 'loading' ? '<span class="price-none">…</span>' : r.buyBox !== null ? `<span class="price-cell">$${r.buyBox.toFixed(2)}</span>` : '<span class="price-none">N/A</span>'}</td>
+                <td>${r.status === 'loading' ? '<span class="price-none">…</span>' : r.listPrice !== null ? `<span class="price-cell">$${r.listPrice.toFixed(2)}</span>` : '<span class="price-none">N/A</span>'}</td>
+                <td>
+                  <div class="status-cell">
+                    <div class="dot ${r.status === 'ok' ? 'dot-ok' : r.status === 'error' ? 'dot-error' : 'dot-loading'}"></div>
+                    <span style="color: var(--text-dim); font-size:11px">${r.status === 'ok' ? 'OK' : r.status === 'error' ? (r.error || 'Error') : 'Loading…'}</span>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── Export CSV ───────────────────────────────────────────
+  function exportCSV() {
+    if (!results.length) return;
+    const header = 'ASIN,Title,Buy Box Price,List Price,Status';
+    const rows = results.map(r =>
+      `"${r.asin}","${(r.title || '').replace(/"/g,'""')}","${r.buyBox !== null ? r.buyBox.toFixed(2) : ''}","${r.listPrice !== null ? r.listPrice.toFixed(2) : ''}","${r.status}"`
+    );
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `keepa-prices-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('CSV exported!', 'success');
+  }
+
+  // ─── UI helpers ───────────────────────────────────────────
+  function setLoading(on) {
+    const btn = document.getElementById('runBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('runBtnText');
+    btn.disabled = on;
+    spinner.style.display = on ? 'block' : 'none';
+    btnText.textContent = on ? 'Fetching…' : '▶ Run Lookup';
+  }
+
+  function showProgress(visible, done = 0, total = 0) {
+    const wrap = document.getElementById('progressWrap');
+    wrap.classList.toggle('visible', visible);
+    if (visible) {
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progressText').textContent = done === total ? 'Complete!' : `Fetching ${done} / ${total}…`;
+      document.getElementById('progressPct').textContent = `${pct}%`;
+      document.getElementById('progressFill').style.width = `${pct}%`;
+    }
+  }
+
+  let toastTimer;
+  function showToast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  }
+
+  // ─── Init ─────────────────────────────────────────────────
+  updateApiStatus();
+  updateCount();
+  document.getElementById('asinTextarea').addEventListener('input', updateCount);
+</script>
+</body>
+</html>
