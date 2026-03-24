@@ -615,6 +615,7 @@
       <input type="password" class="api-input" id="apiKeyInput" placeholder="Paste your Keepa API key…" />
       <span class="api-status unsaved" id="apiStatus">Not saved</span>
       <button class="save-btn" onclick="saveApiKey()">Save</button>
+      <button class="save-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-mid)" onclick="testApiKey()">Test Key</button>
     </div>
   </div>
 
@@ -1029,6 +1030,27 @@
     el.className = `toast ${type} show`;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  }
+
+  // ─── Test API Key ─────────────────────────────────────────
+  async function testApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { showToast('Enter a key first', 'error'); return; }
+    showToast('Testing key…', 'success');
+    try {
+      const resp = await fetch('https://api.keepa.com/token?key=' + encodeURIComponent(key));
+      const text = await resp.text();
+      console.log('[Key Test] Status:', resp.status, 'Body:', text);
+      if (resp.ok) {
+        const j = JSON.parse(text);
+        showToast('✓ Key valid! Tokens left: ' + (j.tokensLeft || 'unknown'), 'success');
+      } else {
+        showToast('✗ Key invalid — status ' + resp.status + ': ' + text.slice(0,80), 'error');
+      }
+    } catch(e) {
+      console.error('[Key Test] Error:', e);
+      showToast('Network error: ' + e.message, 'error');
+    }
   }
 
   // ─── Init ─────────────────────────────────────────────────
