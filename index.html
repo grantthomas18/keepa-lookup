@@ -814,9 +814,13 @@
 
     const allProducts = [];
     for (const batch of batches) {
-      const url = `https://api.keepa.com/product?key=${apiKey}&domain=1&asin=${batch.join(',')}&stats=1&offers=0`;
+      const url = `https://api.keepa.com/product?key=${apiKey}&domain=1&asin=${batch.join(',')}&stats=1&buybox=1`;
       const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`Keepa API error: ${resp.status} ${resp.statusText}`);
+      if (!resp.ok) {
+        let detail = '';
+        try { const j = await resp.json(); detail = j.error ? ` (${j.error})` : ''; } catch(e) {}
+        throw new Error(`Keepa API error: ${resp.status}${detail} — check your API key`);
+      }
       const data = await resp.json();
       if (data.products) allProducts.push(...data.products);
     }
@@ -943,7 +947,7 @@
                 <td>
                   <div class="status-cell">
                     <div class="dot ${r.status === 'ok' ? 'dot-ok' : r.status === 'error' ? 'dot-error' : 'dot-loading'}"></div>
-                    <span style="color: var(--text-dim); font-size:11px">${r.status === 'ok' ? 'OK' : r.status === 'error' ? (r.error || 'Error') : 'Loading…'}</span>
+                    <span style="color: var(--text-dim); font-size:11px; word-break:break-word; max-width:200px">${r.status === 'ok' ? 'OK' : r.status === 'error' ? (r.error || 'Error') : 'Loading…'}</span>
                   </div>
                 </td>
               </tr>
