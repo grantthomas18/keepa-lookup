@@ -352,8 +352,28 @@
     if (c[4] > 0 && c[4] !== (stats.buyBoxPrice || -1)) listPrice = c[4] / 100;
 
     let salesRank = c[3] > 0 ? c[3] : null;
+
+    // Star rating: current[16]/10. Fallback: walk csv[16] for last non-(-1) value
     let starRating = c[16] > 0 ? c[16] / 10 : null;
+    if (!starRating) {
+      const s = (product.csv || [])[16];
+      if (Array.isArray(s)) {
+        for (let i = s.length - 1; i >= 1; i -= 2) {
+          if (s[i] > 0) { starRating = s[i] / 10; break; }
+        }
+      }
+    }
+
+    // Review count: current[17]. Fallback: walk csv[17] for last non-(-1) value
     let reviewCount = c[17] > 0 ? c[17] : null;
+    if (!reviewCount) {
+      const s = (product.csv || [])[17];
+      if (Array.isArray(s)) {
+        for (let i = s.length - 1; i >= 1; i -= 2) {
+          if (s[i] > 0) { reviewCount = s[i]; break; }
+        }
+      }
+    }
 
     return { buyBox, listPrice, salesRank, starRating, reviewCount };
   }

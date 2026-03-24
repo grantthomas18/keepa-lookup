@@ -32,7 +32,7 @@ function sendJson(res, status, data) {
 function fetchKeepa(asins, domain) {
   return new Promise((resolve, reject) => {
     const keepaUrl = 'https://api.keepa.com/product?key=' + KEEPA_API_KEY +
-      '&domain=' + domain + '&asin=' + asins + '&stats=1&buybox=1';
+      '&domain=' + domain + '&asin=' + asins + '&stats=1&buybox=1&rating=1';
 
     const options = new URL(keepaUrl);
     https.get(options, (res) => {
