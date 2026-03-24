@@ -41,8 +41,17 @@ function fetchKeepa(asins, domain) {
           reject(new Error('Keepa returned ' + res.statusCode + ': ' + body.slice(0, 200)));
           return;
         }
-        try { resolve(JSON.parse(body)); }
-        catch(e) { reject(new Error('Failed to parse Keepa response')); }
+        let parsed;
+        try { parsed = JSON.parse(body); }
+        catch(e) {
+          reject(new Error('Failed to parse Keepa response: ' + body.slice(0, 200)));
+          return;
+        }
+        if (parsed.error) {
+          reject(new Error('Keepa error: ' + parsed.error));
+          return;
+        }
+        resolve(parsed);
       });
     }).on('error', reject);
   });

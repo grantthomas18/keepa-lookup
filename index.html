@@ -152,29 +152,12 @@
       <div class="logo-icon">K↗</div>
       <div class="logo-text">Keepa <span>Price Lookup</span></div>
     </div>
-    <button class="settings-btn" onclick="toggleSettings()">⚙ Settings</button>
+
   </header>
 
-  <!-- Settings panel — proxy URL only -->
-  <div class="settings-panel" id="settingsPanel">
-    <div class="settings-row">
-      <span class="settings-label">Proxy URL</span>
-      <input type="text" class="url-input" id="proxyUrlInput" placeholder="https://your-app.railway.app" />
-      <span class="url-status unsaved" id="urlStatus">Not saved</span>
-      <button class="save-btn" onclick="saveProxyUrl()">Save</button>
-      <button class="btn-grey" onclick="testProxy()">Test</button>
-    </div>
-    <div class="settings-hint">
-      Enter your Railway proxy URL. All lookups are routed through this server — your Keepa API key stays secure and server-side.<br>
-      Example: <code>https://keepa-lookup-production.up.railway.app</code>
-    </div>
-  </div>
 
-  <!-- No proxy configured warning -->
-  <div class="warning-banner" id="warningBanner">
-    ⚠ No proxy URL configured — lookups will not work until you set one.
-    <button onclick="openSettings()">Configure</button>
-  </div>
+
+
 
   <div class="main-grid">
     <div class="input-panel">
@@ -248,44 +231,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // ── Hardcoded proxy URL ───────────────────────────────────
+  const PROXY_URL = 'https://keepa-lookup-production.up.railway.app';
+
   let results = [], uploadedAsins = [], activeTab = 'paste', selectedDomain = 1;
-
-  // ── Settings ──────────────────────────────────────────────
-  function toggleSettings() {
-    const panel = document.getElementById('settingsPanel');
-    panel.classList.toggle('open');
-    if (panel.classList.contains('open')) {
-      document.getElementById('proxyUrlInput').value = localStorage.getItem('keepaProxyUrl') || '';
-      updateUrlStatus();
-    }
-  }
-
-  function openSettings() {
-    document.getElementById('settingsPanel').classList.add('open');
-    document.getElementById('proxyUrlInput').value = localStorage.getItem('keepaProxyUrl') || '';
-    updateUrlStatus();
-  }
-
-  function saveProxyUrl() {
-    const url = document.getElementById('proxyUrlInput').value.trim().replace(/\/$/, '');
-    if (!url) { showToast('Enter a URL first', 'error'); return; }
-    localStorage.setItem('keepaProxyUrl', url);
-    updateUrlStatus();
-    checkProxyConfigured();
-    showToast('Proxy URL saved!', 'success');
-  }
-
-  function updateUrlStatus() {
-    const url = localStorage.getItem('keepaProxyUrl');
-    const el = document.getElementById('urlStatus');
-    el.textContent = url ? '✓ Saved' : 'Not saved';
-    el.className = 'url-status ' + (url ? 'saved' : 'unsaved');
-  }
-
-  function checkProxyConfigured() {
-    const url = localStorage.getItem('keepaProxyUrl');
-    document.getElementById('warningBanner').classList.toggle('show', !url);
-  }
 
   async function testProxy() {
     const url = (document.getElementById('proxyUrlInput').value.trim()).replace(/\/$/, '');
@@ -299,7 +248,7 @@
   }
 
   function getProxyUrl() {
-    return (localStorage.getItem('keepaProxyUrl') || '').replace(/\/$/, '');
+    return PROXY_URL;
   }
 
   // ── Marketplace ───────────────────────────────────────────
@@ -377,8 +326,14 @@
       try { resp = await fetch(url); }
       catch(e) { throw new Error('Cannot reach proxy server: ' + e.message); }
       const text = await resp.text();
-      if (!resp.ok) throw new Error('Proxy error ' + resp.status + ': ' + text.slice(0,150));
-      const data = JSON.parse(text);
+      if (!resp.ok) {
+        let detail = text.slice(0,200);
+        try { const j = JSON.parse(text); detail = j.error || detail; } catch(e) {}
+        throw new Error('Proxy error ' + resp.status + ': ' + detail);
+      }
+      let data;
+      try { data = JSON.parse(text); }
+      catch(e) { throw new Error('Invalid response from proxy. Check Railway logs.'); }
       if (data.products) all.push(...data.products);
     }
     return all;
@@ -405,11 +360,7 @@
 
   // ── Lookup ───────────────────────────────────────────────
   async function runLookup() {
-    if (!getProxyUrl()) {
-      showToast('No proxy URL — click ⚙ Settings first', 'error');
-      openSettings();
-      return;
-    }
+
     const asins = getAsins();
     if (!asins.length) { showToast('No valid ASINs found', 'error'); return; }
 
@@ -535,8 +486,6 @@
   }
 
   // ── Init ─────────────────────────────────────────────────
-  updateUrlStatus();
-  checkProxyConfigured();
   document.getElementById('asinTextarea').addEventListener('input', updateCount);
 </script>
 </body>
