@@ -6,6 +6,7 @@
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const zlib = require('zlib');
 
 const PORT = process.env.PORT || 3000;
 const KEEPA_API_KEY = process.env.KEEPA_API_KEY;
@@ -33,10 +34,20 @@ function fetchKeepa(asins, domain) {
     const keepaUrl = 'https://api.keepa.com/product?key=' + KEEPA_API_KEY +
       '&domain=' + domain + '&asin=' + asins + '&stats=1&buybox=1';
 
-    https.get(keepaUrl, (res) => {
+    const options = new URL(keepaUrl);
+    https.get(options, (res) => {
+      // Handle gzip/deflate compressed responses
+      let stream = res;
+      const encoding = res.headers['content-encoding'];
+      if (encoding === 'gzip') {
+        stream = res.pipe(zlib.createGunzip());
+      } else if (encoding === 'deflate') {
+        stream = res.pipe(zlib.createInflate());
+      }
+
       let body = '';
-      res.on('data', chunk => body += chunk);
-      res.on('end', () => {
+      stream.on('data', chunk => body += chunk);
+      stream.on('end', () => {
         if (res.statusCode !== 200) {
           reject(new Error('Keepa returned ' + res.statusCode + ': ' + body.slice(0, 200)));
           return;
@@ -53,6 +64,7 @@ function fetchKeepa(asins, domain) {
         }
         resolve(parsed);
       });
+      stream.on('error', reject);
     }).on('error', reject);
   });
 }
