@@ -467,8 +467,8 @@
   }
 
   .td-asin { color: var(--text-mid); font-size: 12px; }
-  .td-title { color: var(--text); font-size: 12px; max-width: 260px; }
-  .td-title span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .td-title { color: var(--text); font-size: 12px; max-width: 320px; }
+  .td-title span { display: block; white-space: normal; overflow: visible; word-break: break-word; line-height: 1.5; }
 
   .price-cell {
     font-weight: 600;
@@ -856,36 +856,21 @@
     const currentStats = stats.current || [];
 
     // ── Buy Box ──────────────────────────────────────────────
+    // stats.buyBoxPrice is the most reliable field for current buy box
     let buyBox = null;
-    // Primary: stats.buyBoxPrice (most reliable)
     if (stats.buyBoxPrice && stats.buyBoxPrice > 0) {
       buyBox = stats.buyBoxPrice / 100;
     }
-    // Fallback: current[18]
     if (!buyBox && currentStats[18] > 0) {
       buyBox = currentStats[18] / 100;
     }
-    // Fallback: current[0] (Amazon price)
-    if (!buyBox && currentStats[0] > 0) {
-      buyBox = currentStats[0] / 100;
-    }
 
-    // ── List Price ────────────────────────────────────────────
-    // CSV[10] is the list price / MSRP time series [ts, price, ts, price, ...]
-    // Walk the series and find the most recent non-(-1) value
+    // ── List Price (MSRP) ─────────────────────────────────────
+    // stats.current[10] is the Keepa list price / MSRP field.
+    // It is -1 when the product has no MSRP set (show N/A — do NOT fall back).
+    // It is > 0 when a real list price exists (e.g. .99 = 699).
     let listPrice = null;
-    const listSeries = csv[10];
-    if (Array.isArray(listSeries)) {
-      for (let i = listSeries.length - 1; i >= 1; i -= 2) {
-        const price = listSeries[i];
-        if (price > 0) {
-          listPrice = price / 100;
-          break;
-        }
-      }
-    }
-    // Fallback: stats.current[10]
-    if (!listPrice && currentStats[10] > 0) {
+    if (currentStats[10] && currentStats[10] > 0) {
       listPrice = currentStats[10] / 100;
     }
 
