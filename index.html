@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Keepa Price Lookup</title>
+<title>Keepa Price Lookup v4</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -871,9 +871,11 @@
     // it means no separate list price exists for this product.
     let listPrice = null;
     const listRaw = currentStats[4];
+    console.log('[parsePriceData] current[4]:', listRaw, '| buyBoxPrice:', stats.buyBoxPrice);
     if (listRaw && listRaw > 0 && listRaw !== (stats.buyBoxPrice || -1)) {
       listPrice = listRaw / 100;
     }
+    console.log('[parsePriceData] listPrice result:', listPrice);
 
     return { buyBox, listPrice };
   }
