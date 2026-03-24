@@ -865,13 +865,14 @@
       buyBox = currentStats[18] / 100;
     }
 
-    // ── List Price (MSRP) ─────────────────────────────────────
-    // stats.current[10] is the Keepa list price / MSRP field.
-    // It is -1 when the product has no MSRP set (show N/A — do NOT fall back).
-    // It is > 0 when a real list price exists (e.g. .99 = 699).
+    // ── List Price ────────────────────────────────────────────
+    // stats.current[4] = the Listing/MSRP price (what Keepa labels "List Price").
+    // Show it only when it differs from the buy box — if they are equal
+    // it means no separate list price exists for this product.
     let listPrice = null;
-    if (currentStats[10] && currentStats[10] > 0) {
-      listPrice = currentStats[10] / 100;
+    const listRaw = currentStats[4];
+    if (listRaw && listRaw > 0 && listRaw !== (stats.buyBoxPrice || -1)) {
+      listPrice = listRaw / 100;
     }
 
     return { buyBox, listPrice };
