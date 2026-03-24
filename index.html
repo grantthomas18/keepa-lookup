@@ -456,7 +456,7 @@
         return '<tr>' +
           '<td class="td-asin"><a href="' + amazonUrl(r.asin) + '" target="_blank" rel="noopener" style="color:var(--text-mid);text-decoration:none;border-bottom:1px solid var(--border);transition:color 0.15s" onmouseover="this.style.color=\'var(--accent)\'" onmouseout="this.style.color=\'var(--text-mid)\'">' + r.asin + '</a></td>' +
           '<td class="td-title"><span title="' + esc(r.title) + '">' + (r.title ? esc(r.title) : '<span class="price-none">—</span>') + '</span></td>' +
-          '<td>' + (l ? ph : r.buyBox !== null ? '<span class="price-cell">$' + r.buyBox.toFixed(2) + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
+          '<td>' + (l ? ph : r.buyBox !== null ? '<span class="price-cell" style="color:' + (r.listPrice !== null && r.buyBox > r.listPrice ? 'var(--red)' : 'var(--green)') + '">$' + r.buyBox.toFixed(2) + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
           '<td>' + (l ? ph : r.listPrice !== null ? '<span class="price-cell">$' + r.listPrice.toFixed(2) + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
           '<td>' + (l ? ph : r.salesRank !== null ? '<span class="rank-cell">#' + r.salesRank.toLocaleString() + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
           '<td>' + (l ? ph : stars(r.starRating)) + '</td>' +
