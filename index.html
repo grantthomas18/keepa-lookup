@@ -349,14 +349,13 @@
     else if (c[18] > 0) buyBox = c[18] / 100;
 
     // List Price — current[4] is the listing/MSRP price.
-    // Show it when: no buy box exists, OR it differs from the buy box price.
-    // Hide it only when a buy box exists AND it equals the buy box (no separate list price).
+    // Rules:
+    // 1. Buy box exists AND equals list price → show both (same value)
+    // 2. Buy box exists AND differs from list price → show both (different values)
+    // 3. No buy box but list price exists → show list price only
+    // 4. Neither exists → both N/A
     let listPrice = null;
-    if (c[4] > 0) {
-      const hasBuyBox = buyBox !== null;
-      const sameAsBuyBox = hasBuyBox && (c[4] === (stats.buyBoxPrice || -1));
-      if (!sameAsBuyBox) listPrice = c[4] / 100;
-    }
+    if (c[4] > 0) listPrice = c[4] / 100;
 
     let salesRank = c[3] > 0 ? c[3] : null;
 
