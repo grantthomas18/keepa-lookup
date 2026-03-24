@@ -1,0 +1,12 @@
+{
+  "name": "keepa-proxy",
+  "version": "1.0.0",
+  "description": "Proxy server for Keepa Price Lookup app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
