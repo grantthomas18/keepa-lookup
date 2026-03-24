@@ -29,30 +29,27 @@
   .settings-btn { background:var(--surface); border:1px solid var(--border); color:var(--text-mid); padding:8px 16px; border-radius:6px; font-family:var(--mono); font-size:12px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:8px; }
   .settings-btn:hover { border-color:var(--accent); color:var(--accent); }
 
+  /* Settings panel */
   .settings-panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:24px; margin-bottom:28px; display:none; animation:slideDown 0.2s ease; }
   .settings-panel.open { display:block; }
   @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 
   .settings-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-  .settings-divider { border-top:1px solid var(--border); margin:16px 0; padding-top:16px; }
-  .settings-label { font-family:var(--mono); font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; min-width:90px; }
-  .api-input { flex:1; min-width:200px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px 14px; font-family:var(--mono); font-size:13px; color:var(--text); outline:none; transition:border-color 0.2s; }
-  .api-input:focus { border-color:var(--accent); }
-  .proxy-hint { font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:8px; line-height:1.6; }
-  .proxy-hint code { color:var(--accent2); }
-
-  .mode-toggle { display:flex; gap:4px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:3px; }
-  .mode-btn { background:transparent; border:none; color:var(--text-dim); padding:5px 14px; border-radius:4px; font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.15s; }
-  .mode-btn.active { background:var(--accent); color:white; }
-
+  .settings-label { font-family:var(--mono); font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; min-width:100px; }
+  .url-input { flex:1; min-width:280px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px 14px; font-family:var(--mono); font-size:13px; color:var(--text); outline:none; transition:border-color 0.2s; }
+  .url-input:focus { border-color:var(--accent); }
+  .url-input::placeholder { color:var(--text-dim); }
   .save-btn { background:var(--accent); border:none; color:white; padding:10px 20px; border-radius:6px; font-family:var(--mono); font-size:12px; font-weight:600; cursor:pointer; transition:opacity 0.2s; white-space:nowrap; }
   .save-btn:hover { opacity:0.85; }
   .btn-grey { background:var(--surface2); border:1px solid var(--border); color:var(--text-mid); padding:10px 16px; border-radius:6px; font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
   .btn-grey:hover { border-color:var(--accent); color:var(--accent); }
-  .api-status { font-family:var(--mono); font-size:11px; padding:4px 10px; border-radius:4px; white-space:nowrap; }
-  .api-status.saved { background:rgba(46,204,113,0.15); color:var(--green); }
-  .api-status.unsaved { background:rgba(231,76,60,0.15); color:var(--red); }
+  .url-status { font-family:var(--mono); font-size:11px; padding:4px 10px; border-radius:4px; white-space:nowrap; }
+  .url-status.saved { background:rgba(46,204,113,0.15); color:var(--green); }
+  .url-status.unsaved { background:rgba(231,76,60,0.15); color:var(--red); }
+  .settings-hint { font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:10px; line-height:1.6; }
+  .settings-hint code { color:var(--accent2); }
 
+  /* Main layout */
   .main-grid { display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start; }
 
   .input-panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; position:sticky; top:24px; }
@@ -89,17 +86,16 @@
   .run-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
   .asin-count { font-family:var(--mono); font-size:11px; color:var(--text-dim); white-space:nowrap; }
 
+  /* Results */
   .results-panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; min-height:400px; }
   .results-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
   .results-meta { display:flex; align-items:center; gap:12px; }
   .result-badge { font-family:var(--mono); font-size:11px; padding:3px 10px; border-radius:20px; background:rgba(255,107,43,0.15); color:var(--accent); border:1px solid rgba(255,107,43,0.3); }
-  .mode-pill { font-family:var(--mono); font-size:10px; padding:3px 8px; border-radius:3px; }
-  .mode-pill.direct { background:rgba(241,196,15,0.15); color:var(--yellow); border:1px solid rgba(241,196,15,0.3); }
-  .mode-pill.proxy { background:rgba(46,204,113,0.15); color:var(--green); border:1px solid rgba(46,204,113,0.3); }
   .export-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text-mid); padding:7px 14px; border-radius:6px; font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.2s; }
   .export-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
   .export-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
+  /* Table */
   .table-wrap { overflow-x:auto; }
   table { width:100%; border-collapse:collapse; }
   thead th { padding:10px 14px; text-align:left; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-dim); background:var(--surface2); border-bottom:1px solid var(--border); white-space:nowrap; }
@@ -141,6 +137,11 @@
   .toast.error { border-color:var(--red); color:var(--red); }
   .spinner { width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
   @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* No-proxy warning banner */
+  .warning-banner { background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.3); border-radius:8px; padding:12px 16px; margin-bottom:24px; font-family:var(--mono); font-size:12px; color:var(--red); display:none; }
+  .warning-banner.show { display:flex; align-items:center; gap:10px; }
+  .warning-banner button { margin-left:auto; background:var(--red); border:none; color:white; padding:5px 12px; border-radius:4px; font-family:var(--mono); font-size:11px; cursor:pointer; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -154,44 +155,25 @@
     <button class="settings-btn" onclick="toggleSettings()">⚙ Settings</button>
   </header>
 
+  <!-- Settings panel — proxy URL only -->
   <div class="settings-panel" id="settingsPanel">
-    <!-- Mode -->
     <div class="settings-row">
-      <span class="settings-label">Mode</span>
-      <div class="mode-toggle">
-        <button class="mode-btn active" id="modeDirect" onclick="setMode('direct')">Direct (browser)</button>
-        <button class="mode-btn" id="modeProxy" onclick="setMode('proxy')">Proxy (server)</button>
-      </div>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.5">
-        Proxy mode hides your API key server-side — works across all devices.
-      </span>
+      <span class="settings-label">Proxy URL</span>
+      <input type="text" class="url-input" id="proxyUrlInput" placeholder="https://your-app.railway.app" />
+      <span class="url-status unsaved" id="urlStatus">Not saved</span>
+      <button class="save-btn" onclick="saveProxyUrl()">Save</button>
+      <button class="btn-grey" onclick="testProxy()">Test</button>
     </div>
+    <div class="settings-hint">
+      Enter your Railway proxy URL. All lookups are routed through this server — your Keepa API key stays secure and server-side.<br>
+      Example: <code>https://keepa-lookup-production.up.railway.app</code>
+    </div>
+  </div>
 
-    <!-- Direct settings -->
-    <div id="directSettings" class="settings-divider">
-      <div class="settings-row">
-        <span class="settings-label">API Key</span>
-        <input type="password" class="api-input" id="apiKeyInput" placeholder="Paste your Keepa API key…" />
-        <span class="api-status unsaved" id="apiStatus">Not saved</span>
-        <button class="save-btn" onclick="saveApiKey()">Save</button>
-        <button class="btn-grey" onclick="testApiKey()">Test Key</button>
-      </div>
-    </div>
-
-    <!-- Proxy settings -->
-    <div id="proxySettings" style="display:none" class="settings-divider">
-      <div class="settings-row">
-        <span class="settings-label">Proxy URL</span>
-        <input type="text" class="api-input" id="proxyUrlInput" placeholder="https://your-app.railway.app" />
-        <span class="api-status unsaved" id="proxyStatus">Not saved</span>
-        <button class="save-btn" onclick="saveProxyUrl()">Save</button>
-        <button class="btn-grey" onclick="testProxy()">Test</button>
-      </div>
-      <div class="proxy-hint">
-        Deploy <code>server.js</code> to Railway and set <code>KEEPA_API_KEY</code> as an environment variable.
-        Your key stays on the server — all team members just enter the proxy URL here.
-      </div>
-    </div>
+  <!-- No proxy configured warning -->
+  <div class="warning-banner" id="warningBanner">
+    ⚠ No proxy URL configured — lookups will not work until you set one.
+    <button onclick="openSettings()">Configure</button>
   </div>
 
   <div class="main-grid">
@@ -243,7 +225,6 @@
         <div class="results-meta">
           <span class="panel-title">Results</span>
           <span class="result-badge" id="resultBadge" style="display:none"></span>
-          <span class="mode-pill" id="modePill" style="display:none"></span>
         </div>
         <button class="export-btn" id="exportBtn" onclick="exportCSV()" disabled>↓ Export CSV</button>
       </div>
@@ -268,72 +249,42 @@
 
 <script>
   let results = [], uploadedAsins = [], activeTab = 'paste', selectedDomain = 1;
-  let currentMode = localStorage.getItem('keepaMode') || 'direct';
 
   // ── Settings ──────────────────────────────────────────────
   function toggleSettings() {
-    const p = document.getElementById('settingsPanel');
-    p.classList.toggle('open');
-    if (p.classList.contains('open')) {
-      document.getElementById('apiKeyInput').value = localStorage.getItem('keepaApiKey') || '';
+    const panel = document.getElementById('settingsPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
       document.getElementById('proxyUrlInput').value = localStorage.getItem('keepaProxyUrl') || '';
-      applyMode(currentMode);
-      updateApiStatus(); updateProxyStatus();
+      updateUrlStatus();
     }
   }
 
-  function setMode(mode) {
-    currentMode = mode;
-    localStorage.setItem('keepaMode', mode);
-    applyMode(mode);
-  }
-
-  function applyMode(mode) {
-    document.getElementById('modeDirect').classList.toggle('active', mode === 'direct');
-    document.getElementById('modeProxy').classList.toggle('active', mode === 'proxy');
-    document.getElementById('directSettings').style.display = mode === 'direct' ? '' : 'none';
-    document.getElementById('proxySettings').style.display = mode === 'proxy' ? '' : 'none';
-  }
-
-  function saveApiKey() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (!key) { showToast('Enter a key first', 'error'); return; }
-    localStorage.setItem('keepaApiKey', key);
-    updateApiStatus();
-    showToast('API key saved!', 'success');
+  function openSettings() {
+    document.getElementById('settingsPanel').classList.add('open');
+    document.getElementById('proxyUrlInput').value = localStorage.getItem('keepaProxyUrl') || '';
+    updateUrlStatus();
   }
 
   function saveProxyUrl() {
     const url = document.getElementById('proxyUrlInput').value.trim().replace(/\/$/, '');
     if (!url) { showToast('Enter a URL first', 'error'); return; }
     localStorage.setItem('keepaProxyUrl', url);
-    updateProxyStatus();
+    updateUrlStatus();
+    checkProxyConfigured();
     showToast('Proxy URL saved!', 'success');
   }
 
-  function updateApiStatus() {
-    const key = localStorage.getItem('keepaApiKey');
-    const el = document.getElementById('apiStatus');
-    el.textContent = key ? '✓ Saved' : 'Not saved';
-    el.className = 'api-status ' + (key ? 'saved' : 'unsaved');
-  }
-
-  function updateProxyStatus() {
+  function updateUrlStatus() {
     const url = localStorage.getItem('keepaProxyUrl');
-    const el = document.getElementById('proxyStatus');
+    const el = document.getElementById('urlStatus');
     el.textContent = url ? '✓ Saved' : 'Not saved';
-    el.className = 'api-status ' + (url ? 'saved' : 'unsaved');
+    el.className = 'url-status ' + (url ? 'saved' : 'unsaved');
   }
 
-  async function testApiKey() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (!key) { showToast('Enter a key first', 'error'); return; }
-    showToast('Testing…', 'success');
-    try {
-      const r = await fetch('https://api.keepa.com/token?key=' + encodeURIComponent(key));
-      const j = await r.json();
-      showToast(r.ok ? '✓ Valid! Tokens left: ' + (j.tokensLeft || '?') : '✗ Invalid key — ' + r.status, r.ok ? 'success' : 'error');
-    } catch(e) { showToast('Network error: ' + e.message, 'error'); }
+  function checkProxyConfigured() {
+    const url = localStorage.getItem('keepaProxyUrl');
+    document.getElementById('warningBanner').classList.toggle('show', !url);
   }
 
   async function testProxy() {
@@ -345,6 +296,10 @@
       const j = await r.json();
       showToast(r.ok && j.ok ? '✓ Proxy is running!' : '✗ Health check failed', r.ok && j.ok ? 'success' : 'error');
     } catch(e) { showToast('✗ Cannot reach proxy: ' + e.message, 'error'); }
+  }
+
+  function getProxyUrl() {
+    return (localStorage.getItem('keepaProxyUrl') || '').replace(/\/$/, '');
   }
 
   // ── Marketplace ───────────────────────────────────────────
@@ -410,42 +365,23 @@
 
   // ── API ──────────────────────────────────────────────────
   async function fetchKeepaData(asins, domain) {
+    const proxyUrl = getProxyUrl();
+    if (!proxyUrl) throw new Error('No proxy URL configured. Click ⚙ Settings to set one.');
+
     const BATCH = 100;
     const all = [];
     for (let i = 0; i < asins.length; i += BATCH) {
       const batch = asins.slice(i, i + BATCH);
-      const data = currentMode === 'proxy'
-        ? await callProxy(batch, domain)
-        : await callDirect(batch, domain);
+      const url = proxyUrl + '/lookup?asin=' + batch.join(',') + '&domain=' + domain;
+      let resp;
+      try { resp = await fetch(url); }
+      catch(e) { throw new Error('Cannot reach proxy server: ' + e.message); }
+      const text = await resp.text();
+      if (!resp.ok) throw new Error('Proxy error ' + resp.status + ': ' + text.slice(0,150));
+      const data = JSON.parse(text);
       if (data.products) all.push(...data.products);
     }
     return all;
-  }
-
-  async function callDirect(asins, domain) {
-    const key = localStorage.getItem('keepaApiKey');
-    if (!key) throw new Error('No API key — open Settings.');
-    const url = 'https://api.keepa.com/product?key=' + key + '&domain=' + domain + '&asin=' + asins.join(',') + '&stats=1&buybox=1';
-    let resp;
-    try { resp = await fetch(url); } catch(e) { throw new Error('Network error: ' + e.message); }
-    const text = await resp.text();
-    if (!resp.ok) {
-      let d = '';
-      try { const j = JSON.parse(text); d = j.error ? ' — ' + j.error : ''; } catch(e) {}
-      throw new Error('Keepa ' + resp.status + d);
-    }
-    return JSON.parse(text);
-  }
-
-  async function callProxy(asins, domain) {
-    const base = localStorage.getItem('keepaProxyUrl');
-    if (!base) throw new Error('No proxy URL — open Settings.');
-    const url = base + '/lookup?asin=' + asins.join(',') + '&domain=' + domain;
-    let resp;
-    try { resp = await fetch(url); } catch(e) { throw new Error('Cannot reach proxy: ' + e.message); }
-    const text = await resp.text();
-    if (!resp.ok) throw new Error('Proxy error ' + resp.status + ': ' + text.slice(0,150));
-    return JSON.parse(text);
   }
 
   // ── Parse ────────────────────────────────────────────────
@@ -453,22 +389,15 @@
     const stats = product.stats || {};
     const c = stats.current || [];
 
-    // Buy box
     let buyBox = null;
     if (stats.buyBoxPrice > 0) buyBox = stats.buyBoxPrice / 100;
     else if (c[18] > 0) buyBox = c[18] / 100;
 
-    // List price (current[4] = listing price, only show when different from buy box)
     let listPrice = null;
     if (c[4] > 0 && c[4] !== (stats.buyBoxPrice || -1)) listPrice = c[4] / 100;
 
-    // Sales rank
     let salesRank = c[3] > 0 ? c[3] : null;
-
-    // Star rating: current[16] / 10
     let starRating = c[16] > 0 ? c[16] / 10 : null;
-
-    // Review count: current[17]
     let reviewCount = c[17] > 0 ? c[17] : null;
 
     return { buyBox, listPrice, salesRank, starRating, reviewCount };
@@ -476,15 +405,9 @@
 
   // ── Lookup ───────────────────────────────────────────────
   async function runLookup() {
-    currentMode = localStorage.getItem('keepaMode') || 'direct';
-    if (currentMode === 'direct' && !localStorage.getItem('keepaApiKey')) {
-      showToast('No API key — open Settings first', 'error');
-      document.getElementById('settingsPanel').classList.add('open');
-      return;
-    }
-    if (currentMode === 'proxy' && !localStorage.getItem('keepaProxyUrl')) {
-      showToast('No proxy URL — open Settings first', 'error');
-      document.getElementById('settingsPanel').classList.add('open');
+    if (!getProxyUrl()) {
+      showToast('No proxy URL — click ⚙ Settings first', 'error');
+      openSettings();
       return;
     }
     const asins = getAsins();
@@ -494,12 +417,6 @@
     results = asins.map(a => ({ asin:a, status:'loading', title:'', buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, error:null }));
     renderTable(results);
     showProgress(true, 0, asins.length);
-
-    // Show mode pill
-    const pill = document.getElementById('modePill');
-    pill.textContent = currentMode === 'proxy' ? '⬡ proxy' : '⬡ direct';
-    pill.className = 'mode-pill ' + currentMode;
-    pill.style.display = '';
 
     try {
       const products = await fetchKeepaData(asins, selectedDomain);
@@ -531,6 +448,12 @@
   }
 
   // ── Render ───────────────────────────────────────────────
+  const AMAZON_TLD = { 1:'com', 2:'co.uk', 3:'de' };
+
+  function amazonUrl(asin) {
+    return 'https://www.amazon.' + (AMAZON_TLD[selectedDomain] || 'com') + '/dp/' + asin;
+  }
+
   function stars(rating) {
     if (!rating) return '<span class="price-none">—</span>';
     let h = '<span class="stars-wrap">';
@@ -540,12 +463,6 @@
       else h += '<span class="star-empty">★</span>';
     }
     return h + ' <span style="color:var(--text-mid);font-size:10px">' + rating.toFixed(1) + '</span></span>';
-  }
-
-  const AMAZON_TLD = { 1: 'com', 2: 'co.uk', 3: 'de' };
-  function amazonUrl(asin) {
-    const tld = AMAZON_TLD[selectedDomain] || 'com';
-    return 'https://www.amazon.' + tld + '/dp/' + asin;
   }
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -560,7 +477,7 @@
       rows.map(r => {
         const l = r.status === 'loading';
         return '<tr>' +
-          '<td class="td-asin"><a href="' + amazonUrl(r.asin) + '" target="_blank" rel="noopener" style="color:var(--text-mid);text-decoration:none;border-bottom:1px solid var(--border);transition:color 0.15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-mid)'">' + r.asin + '</a></td>' +
+          '<td class="td-asin"><a href="' + amazonUrl(r.asin) + '" target="_blank" rel="noopener" style="color:var(--text-mid);text-decoration:none;border-bottom:1px solid var(--border);transition:color 0.15s" onmouseover="this.style.color=\'var(--accent)\'" onmouseout="this.style.color=\'var(--text-mid)\'">' + r.asin + '</a></td>' +
           '<td class="td-title"><span title="' + esc(r.title) + '">' + (r.title ? esc(r.title) : '<span class="price-none">—</span>') + '</span></td>' +
           '<td>' + (l ? ph : r.buyBox !== null ? '<span class="price-cell">$' + r.buyBox.toFixed(2) + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
           '<td>' + (l ? ph : r.listPrice !== null ? '<span class="price-cell">$' + r.listPrice.toFixed(2) + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
@@ -618,8 +535,8 @@
   }
 
   // ── Init ─────────────────────────────────────────────────
-  applyMode(currentMode);
-  updateApiStatus();
+  updateUrlStatus();
+  checkProxyConfigured();
   document.getElementById('asinTextarea').addEventListener('input', updateCount);
 </script>
 </body>
