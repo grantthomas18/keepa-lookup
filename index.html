@@ -381,7 +381,8 @@
       }
     }
 
-    return { buyBox, listPrice, salesRank, starRating, reviewCount };
+    const brand = product.brand || null;
+    return { buyBox, listPrice, salesRank, starRating, reviewCount, brand };
   }
 
   // ── Lookup ───────────────────────────────────────────────
@@ -391,7 +392,7 @@
     if (!asins.length) { showToast('No valid ASINs found', 'error'); return; }
 
     setLoading(true);
-    results = asins.map(a => ({ asin:a, status:'loading', title:'', buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, error:null }));
+    results = asins.map(a => ({ asin:a, status:'loading', title:'', brand:null, buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, error:null }));
     renderTable(results);
     showProgress(true, 0, asins.length);
 
@@ -402,7 +403,7 @@
 
       results = asins.map(asin => {
         const p = map[asin];
-        if (!p) return { asin, status:'error', title:'', buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, error:'Not found' };
+        if (!p) return { asin, status:'error', title:'', brand:null, buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, error:'Not found' };
         return { asin, status:'ok', title: p.title || '', ...parseProduct(p), error:null };
       });
 
@@ -450,12 +451,13 @@
     if (!rows.length) { c.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No results.</div></div>'; return; }
     const ph = '<span class="price-none">…</span>';
     c.innerHTML = '<div class="table-wrap"><table><thead><tr>' +
-      '<th>ASIN</th><th>Title</th><th>Buy Box</th><th>List Price</th><th>Sales Rank</th><th>Rating</th><th>Reviews</th><th>Status</th>' +
+      '<th>ASIN</th><th>Brand</th><th>Title</th><th>Buy Box</th><th>List Price</th><th>Sales Rank</th><th>Rating</th><th>Reviews</th><th>Status</th>' +
       '</tr></thead><tbody>' +
       rows.map(r => {
         const l = r.status === 'loading';
         return '<tr>' +
           '<td class="td-asin"><a href="' + amazonUrl(r.asin) + '" target="_blank" rel="noopener" style="color:var(--text-mid);text-decoration:none;border-bottom:1px solid var(--border);transition:color 0.15s" onmouseover="this.style.color=\'var(--accent)\'" onmouseout="this.style.color=\'var(--text-mid)\'">' + r.asin + '</a></td>' +
+          '<td style="color:var(--text-mid);font-size:11px;white-space:nowrap">' + (l ? ph : r.brand ? esc(r.brand) : '<span class="price-none">—</span>') + '</td>' +
           '<td class="td-title"><span title="' + esc(r.title) + '">' + (r.title ? esc(r.title) : '<span class="price-none">—</span>') + '</span></td>' +
           '<td>' + (l ? ph : r.buyBox !== null ? '<span class="price-cell" style="color:' + (r.listPrice !== null && r.buyBox > r.listPrice ? 'var(--red)' : 'var(--green)') + '">' + (CURRENCY_SYMBOL[selectedDomain]||'$') + r.buyBox.toFixed(2) + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
           '<td>' + (l ? ph : r.listPrice !== null ? '<span class="price-cell">' + (CURRENCY_SYMBOL[selectedDomain]||'$') + r.listPrice.toFixed(2) + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
@@ -472,9 +474,9 @@
   function exportCSV() {
     if (!results.length) return;
     const mkt = {1:'US',2:'UK',3:'DE'}[selectedDomain]||'US';
-    const hdr = 'ASIN,Title,Marketplace,Buy Box,List Price,Sales Rank,Star Rating,Review Count,Status';
+    const hdr = 'ASIN,Brand,Title,Marketplace,Buy Box,List Price,Sales Rank,Star Rating,Review Count,Status';
     const rows = results.map(r =>
-      '"'+r.asin+'","'+(r.title||'').replace(/"/g,'""')+'","'+mkt+'",' +
+      '"'+r.asin+'","'+(r.brand||'').replace(/"/g,'""')+'","'+(r.title||'').replace(/"/g,'""')+'","'+mkt+'",' +
       '"'+(r.buyBox!==null?r.buyBox.toFixed(2):'')+'",' +
       '"'+(r.listPrice!==null?r.listPrice.toFixed(2):'')+'",' +
       '"'+(r.salesRank!==null?r.salesRank:'')+'",' +
