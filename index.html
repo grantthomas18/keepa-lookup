@@ -114,6 +114,10 @@
   .star-empty { color:var(--border); }
   .stars-wrap { white-space:nowrap; }
   .reviews-cell { color:var(--text-mid); font-size:12px; white-space:nowrap; }
+  .sold-cell { color:var(--text); font-size:12px; font-weight:600; white-space:nowrap; }
+  .sold-trend { font-size:10px; margin-left:6px; font-weight:500; }
+  .sold-trend.up { color:var(--green); }
+  .sold-trend.down { color:var(--red); }
   .status-cell { display:flex; align-items:center; gap:6px; }
   .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
   .dot-ok { background:var(--green); }
@@ -349,11 +353,6 @@
     else if (c[18] > 0) buyBox = c[18] / 100;
 
     // List Price — current[4] is the listing/MSRP price.
-    // Rules:
-    // 1. Buy box exists AND equals list price → show both (same value)
-    // 2. Buy box exists AND differs from list price → show both (different values)
-    // 3. No buy box but list price exists → show list price only
-    // 4. Neither exists → both N/A
     let listPrice = null;
     if (c[4] > 0) listPrice = c[4] / 100;
 
@@ -381,8 +380,22 @@
       }
     }
 
+    // Monthly Sold — "XX bought in past month" from Amazon.
+    // Most ASINs do NOT have this set; returns null if unavailable.
+    // monthlySold is directly on the product object, not in stats.
+    let monthlySold = null;
+    if (typeof product.monthlySold === 'number' && product.monthlySold > 0) {
+      monthlySold = product.monthlySold;
+    }
+
+    // Trend vs 90-day average (integer percent, +/-). Requires stats=30+.
+    let monthlySoldDelta = null;
+    if (typeof stats.deltaPercent90_monthlySold === 'number' && stats.deltaPercent90_monthlySold !== 0) {
+      monthlySoldDelta = stats.deltaPercent90_monthlySold;
+    }
+
     const brand = product.brand || null;
-    return { buyBox, listPrice, salesRank, starRating, reviewCount, brand };
+    return { buyBox, listPrice, salesRank, starRating, reviewCount, brand, monthlySold, monthlySoldDelta };
   }
 
   // ── Lookup ───────────────────────────────────────────────
@@ -392,7 +405,7 @@
     if (!asins.length) { showToast('No valid ASINs found', 'error'); return; }
 
     setLoading(true);
-    results = asins.map(a => ({ asin:a, status:'loading', title:'', brand:null, buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, error:null }));
+    results = asins.map(a => ({ asin:a, status:'loading', title:'', brand:null, buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, monthlySold:null, monthlySoldDelta:null, error:null }));
     renderTable(results);
     showProgress(true, 0, asins.length);
 
@@ -403,7 +416,7 @@
 
       results = asins.map(asin => {
         const p = map[asin];
-        if (!p) return { asin, status:'error', title:'', brand:null, buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, error:'Not found' };
+        if (!p) return { asin, status:'error', title:'', brand:null, buyBox:null, listPrice:null, salesRank:null, starRating:null, reviewCount:null, monthlySold:null, monthlySoldDelta:null, error:'Not found' };
         return { asin, status:'ok', title: p.title || '', ...parseProduct(p), error:null };
       });
 
@@ -444,6 +457,26 @@
     return h + ' <span style="color:var(--text-mid);font-size:10px">' + rating.toFixed(1) + '</span></span>';
   }
 
+  // Format monthlySold to match Amazon's display style ("50+", "1K+", "10K+")
+  function formatMonthlySold(n) {
+    if (n == null) return null;
+    if (n < 1000)  return n + '+';
+    if (n < 10000) return Math.floor(n / 1000) + 'K+';
+    return Math.floor(n / 1000) + 'K+';
+  }
+
+  function renderMonthlySold(n, delta) {
+    const formatted = formatMonthlySold(n);
+    if (!formatted) return '<span class="price-none">—</span>';
+    let html = '<span class="sold-cell">' + formatted + '</span>';
+    if (delta != null) {
+      const arrow = delta > 0 ? '↑' : '↓';
+      const cls = delta > 0 ? 'up' : 'down';
+      html += '<span class="sold-trend ' + cls + '">' + arrow + Math.abs(delta) + '%</span>';
+    }
+    return html;
+  }
+
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function renderTable(rows) {
@@ -451,7 +484,7 @@
     if (!rows.length) { c.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No results.</div></div>'; return; }
     const ph = '<span class="price-none">…</span>';
     c.innerHTML = '<div class="table-wrap"><table><thead><tr>' +
-      '<th>ASIN</th><th>Brand</th><th>Title</th><th>Buy Box</th><th>List Price</th><th>Sales Rank</th><th>Rating</th><th>Reviews</th><th>Status</th>' +
+      '<th>ASIN</th><th>Brand</th><th>Title</th><th>Buy Box</th><th>List Price</th><th>Sales Rank</th><th>Rating</th><th>Reviews</th><th>Sold / Mo</th><th>Status</th>' +
       '</tr></thead><tbody>' +
       rows.map(r => {
         const l = r.status === 'loading';
@@ -464,6 +497,7 @@
           '<td>' + (l ? ph : r.salesRank !== null ? '<span class="rank-cell">#' + r.salesRank.toLocaleString() + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
           '<td>' + (l ? ph : stars(r.starRating)) + '</td>' +
           '<td>' + (l ? ph : r.reviewCount !== null ? '<span class="reviews-cell">' + r.reviewCount.toLocaleString() + '</span>' : '<span class="price-none">N/A</span>') + '</td>' +
+          '<td>' + (l ? ph : renderMonthlySold(r.monthlySold, r.monthlySoldDelta)) + '</td>' +
           '<td><div class="status-cell"><div class="dot dot-' + (r.status==='ok'?'ok':r.status==='error'?'error':'loading') + '"></div>' +
           '<span style="color:var(--text-dim);font-size:11px;word-break:break-word;max-width:120px">' + (r.status==='ok'?'OK':r.status==='error'?(r.error||'Error'):'Loading…') + '</span></div></td>' +
           '</tr>';
@@ -474,7 +508,7 @@
   function exportCSV() {
     if (!results.length) return;
     const mkt = {1:'US',2:'UK',3:'DE'}[selectedDomain]||'US';
-    const hdr = 'ASIN,Brand,Title,Marketplace,Buy Box,List Price,Sales Rank,Star Rating,Review Count,Status';
+    const hdr = 'ASIN,Brand,Title,Marketplace,Buy Box,List Price,Sales Rank,Star Rating,Review Count,Monthly Sold,Monthly Sold Delta %,Status';
     const rows = results.map(r =>
       '"'+r.asin+'","'+(r.brand||'').replace(/"/g,'""')+'","'+(r.title||'').replace(/"/g,'""')+'","'+mkt+'",' +
       '"'+(r.buyBox!==null?r.buyBox.toFixed(2):'')+'",' +
@@ -482,6 +516,8 @@
       '"'+(r.salesRank!==null?r.salesRank:'')+'",' +
       '"'+(r.starRating!==null?r.starRating.toFixed(1):'')+'",' +
       '"'+(r.reviewCount!==null?r.reviewCount:'')+'",' +
+      '"'+(r.monthlySold!==null?r.monthlySold:'')+'",' +
+      '"'+(r.monthlySoldDelta!==null?r.monthlySoldDelta:'')+'",' +
       '"'+r.status+'"'
     );
     const blob = new Blob([[hdr,...rows].join('\n')], {type:'text/csv'});
