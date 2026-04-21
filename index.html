@@ -19,7 +19,7 @@
     background-image: linear-gradient(var(--border) 1px,transparent 1px), linear-gradient(90deg,var(--border) 1px,transparent 1px);
     background-size:40px 40px; opacity:0.3; pointer-events:none; z-index:0;
   }
-  .app { position:relative; z-index:1; max-width:1300px; margin:0 auto; padding:40px 24px; }
+  .app { position:relative; z-index:1; max-width:1600px; margin:0 auto; padding:40px 24px; }
 
   header { display:flex; align-items:center; justify-content:space-between; margin-bottom:40px; padding-bottom:24px; border-bottom:1px solid var(--border); }
   .logo { display:flex; align-items:center; gap:12px; }
@@ -105,8 +105,26 @@
   td { padding:12px 14px; font-family:var(--mono); font-size:12px; vertical-align:middle; }
 
   .td-asin { color:var(--text-mid); font-size:11px; white-space:nowrap; }
-  .td-title { color:var(--text); font-size:12px; max-width:260px; }
-  .td-title span { display:block; white-space:normal; word-break:break-word; line-height:1.5; }
+  /* Title: clamped to 2 lines by default with ellipsis, full text on hover via title="" */
+  .td-title { color:var(--text); font-size:12px; line-height:1.45; }
+  .td-title span {
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    word-break:break-word;
+  }
+  /* Full wrap mode — toggled on the table wrapper */
+  .wrap-titles .td-title span {
+    display:block;
+    -webkit-line-clamp:unset;
+    overflow:visible;
+    white-space:normal;
+  }
+  /* Column sizing — colgroup sets base widths; Title absorbs the remainder */
+  table { table-layout:fixed; }
+  col.col-title { width:auto; }
   .price-cell { font-weight:600; font-size:13px; color:var(--green); white-space:nowrap; }
   .price-none { color:var(--text-dim); font-size:11px; }
   .rank-cell { color:var(--text-mid); font-size:12px; white-space:nowrap; }
@@ -213,7 +231,10 @@
           <span class="panel-title">Results</span>
           <span class="result-badge" id="resultBadge" style="display:none"></span>
         </div>
-        <button class="export-btn" id="exportBtn" onclick="exportCSV()" disabled>↓ Export CSV</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="export-btn" id="wrapToggleBtn" onclick="toggleWrapTitles()" title="Toggle between clamped and full-wrap titles">↕ Wrap titles</button>
+          <button class="export-btn" id="exportBtn" onclick="exportCSV()" disabled>↓ Export CSV</button>
+        </div>
       </div>
       <div id="tableContainer">
         <div class="empty-state">
@@ -238,7 +259,7 @@
   // ── Hardcoded proxy URL ───────────────────────────────────
   const PROXY_URL = 'https://keepa-lookup-production.up.railway.app';
 
-  let results = [], uploadedAsins = [], activeTab = 'paste', selectedDomain = 1;
+  let results = [], uploadedAsins = [], activeTab = 'paste', selectedDomain = 1, wrapTitles = false;
 
   async function testProxy() {
     const url = (document.getElementById('proxyUrlInput').value.trim()).replace(/\/$/, '');
@@ -483,7 +504,21 @@
     const c = document.getElementById('tableContainer');
     if (!rows.length) { c.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No results.</div></div>'; return; }
     const ph = '<span class="price-none">…</span>';
-    c.innerHTML = '<div class="table-wrap"><table><thead><tr>' +
+    const wrapClass = wrapTitles ? ' wrap-titles' : '';
+    c.innerHTML = '<div class="table-wrap' + wrapClass + '"><table>' +
+      '<colgroup>' +
+        '<col style="width:110px">' +   // ASIN
+        '<col style="width:110px">' +   // Brand
+        '<col class="col-title">' +      // Title (flex)
+        '<col style="width:90px">' +    // Buy Box
+        '<col style="width:90px">' +    // List Price
+        '<col style="width:100px">' +   // Sales Rank
+        '<col style="width:100px">' +   // Rating
+        '<col style="width:80px">' +    // Reviews
+        '<col style="width:120px">' +   // Sold / Mo
+        '<col style="width:110px">' +   // Status
+      '</colgroup>' +
+      '<thead><tr>' +
       '<th>ASIN</th><th>Brand</th><th>Title</th><th>Buy Box</th><th>List Price</th><th>Sales Rank</th><th>Rating</th><th>Reviews</th><th>Sold / Mo</th><th>Status</th>' +
       '</tr></thead><tbody>' +
       rows.map(r => {
@@ -527,6 +562,14 @@
   }
 
   // ── UI helpers ───────────────────────────────────────────
+  function toggleWrapTitles() {
+    wrapTitles = !wrapTitles;
+    const wrap = document.querySelector('.table-wrap');
+    if (wrap) wrap.classList.toggle('wrap-titles', wrapTitles);
+    const btn = document.getElementById('wrapToggleBtn');
+    if (btn) btn.style.color = wrapTitles ? 'var(--accent)' : '';
+  }
+
   function setLoading(on) {
     document.getElementById('runBtn').disabled = on;
     document.getElementById('spinner').style.display = on ? 'block' : 'none';
